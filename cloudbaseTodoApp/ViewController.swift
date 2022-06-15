@@ -11,8 +11,9 @@ import FirebaseDatabase
 class ViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
-    private var dataSource: [(String, Any)] = []
+    private var dataSource: [(String, String)] = []
     private let database = Database.database().reference()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,9 +42,26 @@ class ViewController: UIViewController {
         ))
     }
     
+    func removeItemFromDatabase(itemKey: String){
+        database.child("ToDoList/\(itemKey)").removeValue()
+       // database.child("ToDoList/\()").removeValue()
+        //let toDolistRef = Database.database().reference(withPath: "ToDoList")
+        //let query = toDolistRef.queryOrderedByValue().queryEqual(toValue: item)
+        //todo check which to delete if duplicate entries were made
+        
+       // query.observeSingleEvent(of: .value) { [weak self] snapShot in
+           //guard let items = snapShot.value as? [String : String] else {
+         //       return
+          //  }
+         //  for (key, _) in items {
+         //       self?.database.child("ToDoList/\(key)").removeValue()
+            //}
+      //  }
+    }
+    
     func saveToDo(item: String){
-        let key = "item_\(dataSource.count + 1)"
-        database.child("ToDoList/\(key)").setValue(item)
+        //let key = "item_\(dataSource.count + 1)"
+        database.child("ToDoList").childByAutoId().setValue(item)
         //fetchItemsFromDataBase()
     }
     
@@ -69,7 +87,7 @@ class ViewController: UIViewController {
 extension ViewController: UITableViewDataSource{
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = dataSource[indexPath.row].1 as? String   
+        cell.textLabel?.text = dataSource[indexPath.row].1
         return cell
     }
     
@@ -82,5 +100,16 @@ extension ViewController: UITableViewDataSource{
 extension ViewController: UITableViewDelegate{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+    }
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        //animation of swipe delete
+        if editingStyle == .delete {
+            //todo remove item from database nad data source
+            removeItemFromDatabase(itemKey: dataSource[indexPath.row].0)
+            dataSource.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+           
+            
+        }
     }
 }
